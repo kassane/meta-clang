@@ -1,6 +1,7 @@
 DESCRIPTION = "Zig toolchain and programming language"
 HOMEPAGE = "http://ziglang.org/"
 LICENSE = "MIT & Unknown"
+SECTION = "devel"
 
 SRC_URI = "git://github.com/ziglang/zig.git;branch=0.11.x;protocol=https"
 

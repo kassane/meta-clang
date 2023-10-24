@@ -1,0 +1,46 @@
+name: Distro CI
+
+on:
+  # Trigger the workflow on push or pull request,
+  # but only for the master branch
+  push:
+  pull_request:
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        branch:
+          - {distro: dunfell, version: 3.1.17}
+          # - {distro: gatesgarth, version: 3.2.4} #EOL
+          # - {distro: hardknott, version: 3.3.6}  #EOL
+          # - {distro: honister, version: 3.4.4}   #EOL
+          - {distro: kirkstone, version: 4.0.1}
+          - {distro: mickledore, version: 4.2.2}
+    env:
+      YOCTO_VERSION: ${{ matrix.branch.version }}
+      YOCTO_BRANCH: ${{ matrix.branch.distro }}
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Fetch poky
+        run: |
+          mv poky/build/sstate-cache . || true
+          rm -rf poky meta-openembedded
+          git clone -b $YOCTO_BRANCH --single-branch git://git.yoctoproject.org/poky
+          git clone -b $YOCTO_BRANCH --single-branch git://git.openembedded.org/meta-openembedded
+      - name: Configure build
+        run: |
+          cd poky
+          . oe-init-build-env
+          mv ../../sstate-cache . || true
+          bitbake-layers add-layer ../../meta-openembedded/meta-oe
+          bitbake-layers add-layer ../../meta-clang
+      # - name: Run bitbake
+      #   run: |
+      #     cd poky
+      #     . oe-init-build-env
+      #     bitbake rust-hello-world
